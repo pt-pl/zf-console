@@ -32,18 +32,18 @@ class ServiceManagerApplication
      */
     public function __construct($config, Console $console, Dispatcher $dispatcher = null)
     {
-        if (! is_array($routes) && ! $routes instanceof Traversable) {
-            throw new \InvalidArgumentException('Config must be provided as an array or Traversable object');
-        }
-
         if(!isset($config['name']) || !isset($config['version']) || !isset($config['routes']))
         {
             throw new \InvalidArgumentException('Config must contains not empty fields: name, version, routes');
         }
 
+        if (!is_array($config['routes']) && !$config['routes'] instanceof Traversable) {
+            throw new \InvalidArgumentException('Config must be provided as an array or Traversable object');
+        }
+
         parent::__construct($config['name'], $config['version'], $config['routes'], $console, $dispatcher);
 
-        if(!empty($config['service_manager'])) {
+        if(isset($config['service_manager']) && is_array($config['service_manager'])) {
             $sm = new ServiceManager(new Config($config['service_manager']));
             $sm->setService('ApplicationConfig', $config);
 

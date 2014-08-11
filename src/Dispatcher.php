@@ -95,7 +95,7 @@ class Dispatcher implements ServiceLocatorAwareInterface
             $callable instanceof ServiceLocatorAwareInterface &&
             $callable->getServiceLocator() === null) {
 
-            $callable->setServiceLocator($serviceLocator);
+            $callable->setServiceLocator($this->getServiceLocator());
         }
 
         $return = call_user_func($callable, $route, $console);
