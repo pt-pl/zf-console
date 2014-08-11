@@ -10,11 +10,28 @@ use InvalidArgumentException;
 use RuntimeException;
 use Zend\Console\Adapter\AdapterInterface as ConsoleAdapter;
 use Zend\Console\ColorInterface as Color;
+use Zend\ServiceManager\ServiceLocatorAwareInterface;
+use Zend\ServiceManager\ServiceLocatorAwareTrait;
 
-class Dispatcher
+class Dispatcher implements ServiceLocatorAwareInterface
 {
+    use ServiceLocatorAwareTrait;
+
+    /**
+     * Command names mapped to callables
+     *
+     * @var array
+     */
     protected $commandMap = array();
 
+    /**
+     * Maps name to callable action
+     *
+     * @param    string        $command    command name
+     * @param    callable    $callable    executable
+     * @throws    InvalidArgumentException
+     * @return    \ZF\Console\Dispatcher
+     */
     public function map($command, $callable)
     {
         if (! is_string($command) || empty($command)) {
@@ -42,6 +59,14 @@ class Dispatcher
         return isset($this->commandMap[$command]);
     }
 
+    /**
+     * Dispatches route
+     *
+     * @param Route $route
+     * @param ConsoleAdapter $console
+     * @throws RuntimeException
+     * @return number
+     */
     public function dispatch(Route $route, ConsoleAdapter $console)
     {
         $name = $route->getName();
@@ -64,6 +89,13 @@ class Dispatcher
                 ));
             }
             $this->commandMap[$name] = $callable;
+        }
+
+        if ($this->getServiceLocator() !== null &&
+            $callable instanceof ServiceLocatorAwareInterface &&
+            $callable->getServiceLocator() === null) {
+
+            $callable->setServiceLocator($serviceLocator);
         }
 
         $return = call_user_func($callable, $route, $console);
